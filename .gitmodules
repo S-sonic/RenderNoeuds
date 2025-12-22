@@ -1,0 +1,3 @@
+[submodule "GNEngine"]
+	path = GNEngine
+	url = git@github.com:S-sonic/GN-engine.git
