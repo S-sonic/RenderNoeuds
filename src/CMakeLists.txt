@@ -23,6 +23,6 @@ target_compile_definitions(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         SDL3::SDL3
-        glm::glm
+        GNEngine::GNEngine
         ${SYSTEM_OPENGL_LIBS}       # Linux
 )

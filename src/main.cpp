@@ -1,44 +1,64 @@
 #include <iostream>
+#include <memory>
+#include <functional>
+
 #include <SDL3/SDL.h>
+
+#include <GNEngine/event/event_manager.h>
+
+void poll_sdl_event(gn::event_manager& eventManager);
 
 int main(int argc, char** argv)
 {
-	if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
-	{
-		std::cerr << "Init error : " << SDL_GetError() << std::endl;
-		return EXIT_FAILURE;
-	}
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS))
+    {
+        std::cerr << "Init error : " << SDL_GetError() << std::endl;
+        return EXIT_FAILURE;
+    }
 
-	auto window = SDL_CreateWindow("RenderNoeuds", 720, 405, SDL_WINDOW_OPENGL);
+    std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>> window;
+    window = std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>>
+        (SDL_CreateWindow("RenderNeuds", 720, 405, SDL_WINDOW_OPENGL),
+            SDL_DestroyWindow);
 
-	if (!window)
-	{
-		std::cerr << "Window creation error : " << SDL_GetError() << std::endl;
-		SDL_Quit();
-		return EXIT_FAILURE;
-	}
+    if (!window)
+    {
+        std::cerr << "Window creation error : " << SDL_GetError() << std::endl;
+        SDL_Quit();
+        return EXIT_FAILURE;
+    }
+    
+    bool run = true;
 
-	bool isRunning = true;
+    gn::event_manager eventManager;
 
-	while (isRunning)
-	{
-		// render here
+    eventManager.subscribe<gn::SDLEvent>([&](const gn::SDLEvent& e)
+        {
+            if (e.event.type == SDL_EventType::SDL_EVENT_QUIT)
+                run = false;
+        });
 
-		// input
-		SDL_Event event;
+    eventManager.subscribe<gn::SDLEvent>([&](const gn::SDLEvent& e)
+        {
+            if (e.event.type == SDL_EventType::SDL_EVENT_KEY_DOWN && e.event.key.key == SDLK_ESCAPE)
+                run = false;
+        });
 
-		while (SDL_PollEvent(&event))
-		{
-			switch (event.type)
-			{
-			case SDL_EventType::SDL_EVENT_QUIT:
-				isRunning = false;
-				break;
-			}
-		}
-	}
+    while (run)
+    {
+        poll_sdl_event(eventManager);
+    }
 
-	SDL_Quit();
+    SDL_Quit();
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
+}
+
+void poll_sdl_event(gn::event_manager& eventManager)
+{
+    gn::SDLEvent event;
+    while (SDL_PollEvent(&event.event))
+    {
+        eventManager.publish(event);
+    }
 }
