@@ -17,6 +17,7 @@ target_include_directories(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         IMGUI_DEFINE_MATH_OPERATORS
+        NOMINMAX                    # Windows...
 )
 
 # Liaison de TOUTES les dépendances externes
